@@ -305,9 +305,12 @@ var main = document.getElementById("main");
 var step = document.getElementById("step");
 var panes = [], cur = -1;
 
+var TAB_KEY = "kanjoTab";   // 最後に開いていたタブ(このブラウザ内のみ。更新しても同じタブを開く)
+var booting = true;         // 復元で開くとき(初回)は書き込まない。ユーザーがタブを押したときだけ覚える
 function select(i){
   if(cur === i) return;
   cur = i;
+  if(!booting){ try{ localStorage.setItem(TAB_KEY, String(i)); }catch(e){} }
   for(var k = 0; k < panes.length; k++){
     if(panes[k]) panes[k].classList.toggle("hide", k !== i);
     nav.children[k].classList.toggle("on", k === i);
@@ -332,7 +335,11 @@ for(var i = 0; i < TOOLS.length; i++){
   b.onclick = (function(n){ return function(){ select(n); }; })(i);
   nav.appendChild(b);
 }
-select(0);
+// 前回開いていたタブを復元する(無ければ①)。更新(Ctrl+R)でも同じタブが開く
+var startTab = 0;
+try{ var saved = parseInt(localStorage.getItem(TAB_KEY), 10); if(saved >= 0 && saved < TOOLS.length) startTab = saved; }catch(e){}
+select(startTab);
+booting = false;
 
 // ---- 上司・関係者への説明文(表示とワンクリックコピー)
 var aboutPanel = document.getElementById("aboutPanel");
